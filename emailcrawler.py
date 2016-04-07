@@ -28,6 +28,8 @@ to_search_list = []
 searched_list = []
 email_list = []
 email_list_withurl = []
+phone_list = []
+phone_list_withurl = []
 
 def download(max_iterations):
 
@@ -35,6 +37,7 @@ def download(max_iterations):
     while iteration <= int(max_iterations):
 
         print "Searching for emails..."
+        print "Number of sites searched: %s" % len(searched_list)
 
         ## We reached a dead end if there are no
         ## more sites in our to_search_list
@@ -73,13 +76,13 @@ def download(max_iterations):
 
             ## Find more URLs
             import re
-            
+
             ## The regular expression we will use to search for URLs:
-            url_expression= r"http://+[\w\d:#@%/;$()~_?\+-=\\\.&]*"
+            url_expression= r'http://+[\w\d:#@%/;$()~_?\+-=\\\.&]*'
             regex = re.compile(url_expression)
-            
-            ## Find all the URLs and 
-            
+
+            ## Find all the URLs and
+
             results = regex.findall(line)
             if results:
                 for result in results:
@@ -88,33 +91,55 @@ def download(max_iterations):
             ## of URLs we need to crawl over.
                     if result not in searched_list:
                         to_search_list.append(result)
-            
+
             ## Find email addresses
-            
-            ## The regular expression we will use to search for email 
+
+            ## The regular expression we will use to search for email
             ## addresses. For more information on this, have a look at
             ## the "validating-email" example.
-            
-            email_expression = r"\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6}"
+
+            email_expression = r'\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6}'
             eregex = re.compile(email_expression)
-            
+
             ## Find all the email addresses
             e_results = eregex.findall(line)
             if e_results:
                 for e_result in e_results:
-                    
+
             ## If the email address is new, add it to
             ## our email list.
                     if e_result not in email_list:
                         email_list.append(e_result)
                         email_list_withurl.append(first_url + ', ' + e_result)
-                    
+
+            ## Find phone
+
+            ## The regular expression we will use to search for phone
+            ## addresses. For more information on this, have a look at
+            ## the "validating-phone" example.
+
+            phone_expression = r'(^\+[0-9]{2}|^\+[0-9]{2}\(0\)|^\(\+[0-9]{2}\)\(0\)|^00[0-9]{2}|^0|\(?\+?[0-9]*\)?)\s?([0-9]{9}$|[0-9\-\s]{10}$|[0-9\-\s]{11}$)'
+            eregex_phone = re.compile(phone_expression)
+
+            ## Find all the phone addresses
+            e_results_phone = eregex_phone.findall(line)
+            if e_results_phone:
+                for e_result_phone in e_results_phone:
+
+            ## If the phone is new, add it to
+            ## our phone listself.
+                    if e_result_phone not in phone_list:
+                        phone = e_result_phone[0] + e_result_phone[1]
+                        print('PHONE ',phone)
+                        phone_list.append(phone)
+                        phone_list_withurl.append(first_url + ', ' + phone)
+
         iteration += 1
 
 
 def output_results():
 
-    ## This function will print the following information: 
+    ## This function will print the following information:
     ## number of sites in our sites to crawl list, the number
     ## of sites we actually crawled, and the total number of
     ## emails collected.
@@ -122,10 +147,11 @@ def output_results():
     print "Number of sites to search: %s" % len(to_search_list)
     print "Number of sites searched: %s" % len(searched_list)
     print "Number of emails collected: %s" % len(email_list)
+    print "Number of emails collected: %s \n" % len(phone_list)
 
 def write_results():
 
-    ## Write all the information that the 
+    ## Write all the information that the
     ## output_results() function prints out (see above)
     ## into a file called "info.txt"
 
@@ -134,6 +160,7 @@ def write_results():
     i.write("Number of sites to search: %s \n" % len(to_search_list))
     i.write("Number of sites searched: %s \n" % len(searched_list))
     i.write("Number of emails collected: %s \n" % len(email_list))
+    i.write("Number of emails collected: %s \n" % len(phone_list))
     i.close()
 
     ## Write down all the emails collected into a file called
@@ -142,7 +169,7 @@ def write_results():
 
     file_name = "email_addresses.txt"
     n = open(file_name, "w")
- 
+
     for email in email_list:
         entry = email + "\n"
         n.write(entry)
@@ -150,9 +177,28 @@ def write_results():
     n.close()
     file_name = "email_addresses_withurl.txt"
     n = open(file_name, "w")
- 
+
     for email in email_list_withurl:
         entry = email + "\n"
+        n.write(entry)
+
+    ## Write down all the emails collected into a file called
+    ## "phone_number.txt". We will use this file in the next
+    ## part of this example.
+
+    file_name = "phone_number.txt"
+    n = open(file_name, "w")
+
+    for phone in phone_list:
+        entry = phone + "\n"
+        n.write(entry)
+
+    n.close()
+    file_name = "phone_number_withurl.txt"
+    n = open(file_name, "w")
+
+    for phone in phone_list_withurl:
+        entry = phone + "\n"
         n.write(entry)
 
     n.close()
@@ -177,9 +223,12 @@ def main():
         to_search_list.append(urltosearch)
     iterations = len(to_search_list)
     download(iterations)
+    if len(to_search_list) > 0 :
+        iterations = len(to_search_list)
+        download(iterations)
     output_results()
     write_results()
 
-    
+
 if __name__ == "__main__":
     main()
